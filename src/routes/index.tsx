@@ -14,14 +14,14 @@ function Home() {
       </p>
       <p>
         When you do, its loader will invoke a server function that throws an
-        error. This will trigger the router error boundary.
+        error. This should render the route error boundary.
       </p>
       <p>
-        In development mode (<code>vite dev</code>), you will see a SyntaxError
-        in the browser console:
+        With the corrected Vite 8 setup, the old SyntaxError no longer
+        reproduces. The expected result is:
       </p>
       <pre style={{ background: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '4px' }}>
-        Uncaught (in promise) SyntaxError: The requested module 'react-dom/server.browser.js' does not provide an export named 'default'
+        Route Error Component: UNAUTHENTICATED_ERROR
       </pre>
     </div>
   )

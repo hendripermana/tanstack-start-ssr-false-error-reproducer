@@ -1,6 +1,14 @@
-# TanStack Start `ssr: false` Route Error Reproducer
+# TanStack Start `ssr: false` Route Error Check
 
-This repository is a minimal complete reproducer for the issue described in [TanStack/router#7412](https://github.com/TanStack/router/issues/7412).
+This repository was originally created for [TanStack/router#7412](https://github.com/TanStack/router/issues/7412).
+
+The original report was based on an invalid dependency setup: `@vitejs/plugin-react@6`
+was installed with Vite 6. After updating the project to Vite 8, the reported
+`react-dom/server.browser.js` default-export SyntaxError no longer reproduces.
+
+Current result: the `ssr: false` route renders its route `errorComponent`, and
+the browser console shows the expected `UNAUTHENTICATED_ERROR` from the test
+loader.
 
 ## Steps to Reproduce
 
@@ -20,22 +28,15 @@ This repository is a minimal complete reproducer for the issue described in [Tan
 
 5. Click on **"Protected Route (ssr: false)"**.
 
-6. Observe the uncaught promise SyntaxError in the browser console:
-   ```
-   Uncaught (in promise) SyntaxError: The requested module
-   '/node_modules/.pnpm/react-dom@19.2.6_react@19.2.6/node_modules/react-dom/server.browser.js?v=b87af0c2'
-   does not provide an export named 'default' (at renderRouterToString.js?v=b87af0c2:1:8)
-   ```
+6. Observe that the route error component renders the expected
+   `UNAUTHENTICATED_ERROR`.
 
-## Root Cause
+## Outcome
 
-When the `loader` of the `/protected` route throws an error (triggered by the mock server function throwing `UNAUTHENTICATED_ERROR`), TanStack Router's error handling rendering path pulls in `renderRouterToString`.
+With Vite 8, the browser did not request `renderRouterToString` or
+`react-dom/server.browser.js` for this route transition. The issue was closed
+because this repository no longer provides a valid reproduction of the reported
+TanStack Router/Start bug.
 
-In `renderRouterToString.js` in `@tanstack/react-router/dist/esm/ssr/renderRouterToString.js`, it does:
-```javascript
-import ReactDOMServer from "react-dom/server"
-```
-
-In the browser, Vite resolves `react-dom/server` to `react-dom/server.browser.js`. Because `react-dom/server.browser.js` is a CommonJS file that only has named exports (`exports.renderToString`, etc.) and does not define a `default` export in ES module resolution when processed by Vite, the import fails with a `SyntaxError`.
-
-Since the route explicitly sets `ssr: false`, server-side rendering utilities should never be imported or executed in the client/browser environment during error rendering.
+If the same failure appears again under a supported setup, open a fresh issue
+with a clean minimal reproduction.
